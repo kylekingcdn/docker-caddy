@@ -15,7 +15,9 @@ pipeline {
                 'dns-route53',
                 'dns-route53-mercure',
                 'dns-digitalocean',
-                'dns-digitalocean-mercure'
+                'dns-digitalocean-mercure',
+                'dns-cloudflare',
+                'dns-cloudflare-mercure'
             ]
         )
     }
@@ -26,7 +28,11 @@ pipeline {
                     docker.withRegistry( '', registry_credentials ) {
                         def tags = []
                         if (params.image_tag == 'all') {
-                            tags = [ 'dns-route53', 'dns-route53-mercure', 'dns-digitalocean', 'dns-digitalocean-mercure' ]
+                            tags = [
+                                'dns-route53', 'dns-route53-mercure',
+                                'dns-digitalocean', 'dns-digitalocean-mercure',
+                                'dns-cloudflare', 'dns-cloudflare-mercure'
+                            ]
                         }
                         else {
                             tags = [ params.image_tag ]

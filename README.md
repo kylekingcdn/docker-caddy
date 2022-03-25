@@ -13,3 +13,8 @@ A docker image for caddy with support for various plugins
 - **dns-digitalocean-mercure**
   - `dns-digitialocean`
   - `mercure`
+- **dns-cloudflare**
+  - `dns-cloudflare`
+- **dns-cloudflare-mercure**
+  - `dns-cloudflare`
+  - `mercure`
