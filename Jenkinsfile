@@ -12,57 +12,102 @@ pipeline {
             description: 'Image tags to build',
             choices: [
                 'all',
-                'dns-route53',
-                'dns-route53-mercure',
-                'dns-digitalocean',
-                'dns-digitalocean-mercure',
-                'dns-cloudflare',
-                'dns-cloudflare-mercure'
+                'dns',
+                'dns-mercure'
             ]
         )
     }
     stages {
-        stage('Build') {
+        stage('Build dns image') {
+            when {
+                anyOf {
+                    expression { params.image_tag == 'all' }
+                    expression { params.image_tag == 'dns' }
+                }
+            }
             steps {
                 script {
                     docker.withRegistry( '', registry_credentials ) {
-                        def tags = []
-                        if (params.image_tag == 'all') {
-                            tags = [
-                                'dns-route53', 'dns-route53-mercure',
-                                'dns-digitalocean', 'dns-digitalocean-mercure',
-                                'dns-cloudflare', 'dns-cloudflare-mercure'
-                            ]
-                        }
-                        else {
-                            tags = [ params.image_tag ]
-                        }
-
-                        for (int i = 0; i < tags.size(); ++i) {
-                            def tag = tags[i]
-                            sh label: "Build ${tag}", script: """
-                                docker buildx create \
-                                    --use && \
-                                docker buildx build \
-                                    --file ${tag}.Dockerfile \
-                                    --tag ${image_name}:${tag} \
-                                    --platform ${architectures} \
-                                    --force-rm \
-                                    --no-cache \
-                                    --pull \
-                                    --push \
-                                    .
-                            """
-                        }
+                        sh label: "Create builder instance", script: """
+                            docker buildx create --use
+                        """
+                        sh label: "Build image", script: """
+                            docker buildx build \
+                                --file dns.Dockerfile \
+                                --tag ${image_name}:dns \
+                                --tag ${image_name}:dns-route53 \
+                                --tag ${image_name}:dns-digitalocean \
+                                --tag ${image_name}:dns-cloudflare \
+                                --platform ${architectures} \
+                                --force-rm \
+                                --no-cache \
+                                --pull \
+                                --push \
+                                .
+                        """
                     }
+                }
+            }
+            post {
+                cleanup {
+                    sh label: "Stop builder", script: """
+                        docker buildx stop;
+                    """
+                    sh label: "Remove builder", script: """
+                        docker buildx rm --force;
+                    """
+                }
+            }
+        }
+        stage('Build dns-mercure image') {
+            when {
+                anyOf {
+                    expression { params.image_tag == 'all' }
+                    expression { params.image_tag == 'dns-mercure' }
+                }
+            }
+            steps {
+                script {
+                    docker.withRegistry( '', registry_credentials ) {
+                        sh label: "Create builder instance", script: """
+                            docker buildx create --use
+                        """
+                        sh label: "Build image", script: """
+                            docker buildx build \
+                                --file dns-mercure.Dockerfile \
+                                --tag ${image_name}:dns-mercure \
+                                --tag ${image_name}:dns-route53-mercure \
+                                --tag ${image_name}:dns-digitalocean-mercure \
+                                --tag ${image_name}:dns-cloudflare-mercure \
+                                --platform ${architectures} \
+                                --force-rm \
+                                --no-cache \
+                                --pull \
+                                --push \
+                                .
+                        """
+                    }
+                }
+            }
+            post {
+                cleanup {
+                    sh label: "Stop builder", script: """
+                        docker buildx stop;
+                    """
+                    sh label: "Remove builder", script: """
+                        docker buildx rm --force;
+                    """
                 }
             }
         }
     }
     post {
         cleanup {
-            sh label: "Prune images ", script: """
-                docker image prune --force;
+            sh label: "Run docker buildx prune", script: """
+                docker buildx prune --all --force;
+            """
+            sh label: "Run docker system prune", script: """
+                docker system prune --all --force;
             """
             cleanWs()
         }
