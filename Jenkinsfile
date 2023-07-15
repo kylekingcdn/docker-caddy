@@ -94,9 +94,9 @@ pipeline {
                     sh label: "Stop builder", script: """
                         docker buildx stop;
                     """
-                    sh label: "Remove builder", script: """
-                        docker buildx rm --force;
-                    """
+//                  sh label: "Remove builder", script: """
+//                      docker buildx rm --force;
+//                  """
                 }
             }
         }
