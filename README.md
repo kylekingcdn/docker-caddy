@@ -3,18 +3,12 @@ A docker image for caddy with support for various plugins
 
 ## Tags (and their included plugins)
 
-- **dns-route53**
-  - `dns-route53`
-- **dns-route53-mercure**
-  - `dns-route53`
-  - `mercure`
-- **dns-digitalocean**
-  - `dns-digitialocean`
-- **dns-digitalocean-mercure**
-  - `dns-digitialocean`
-  - `mercure`
-- **dns-cloudflare**
+- **dns**
   - `dns-cloudflare`
-- **dns-cloudflare-mercure**
+  - `dns-digitialocean`
+  - `dns-route53`
+- **dns-mercure**
   - `dns-cloudflare`
+  - `dns-digitialocean`
+  - `dns-route53`
   - `mercure`
