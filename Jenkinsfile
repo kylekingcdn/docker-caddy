@@ -28,8 +28,9 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry( '', registry_credentials ) {
-                        sh label: "Create builder instance", script: """
-                            docker buildx create --use
+                        builder_name = env.architectures.replaceAll(',', '-').replaceAll('/', '_')
+                        sh label: "Create a new builder if one does not already exist", script: """
+                            docker buildx inspect ${builder_name} || docker buildx create --name ${builder_name} --platform ${architectures}
                         """
                         sh label: "Build image", script: """
                             docker buildx build \
@@ -39,6 +40,7 @@ pipeline {
                                 --tag ${image_name}:dns-digitalocean \
                                 --tag ${image_name}:dns-cloudflare \
                                 --platform ${architectures} \
+                                --builder ${builder_name} \
                                 --force-rm \
                                 --no-cache \
                                 --pull \
@@ -46,16 +48,6 @@ pipeline {
                                 .
                         """
                     }
-                }
-            }
-            post {
-                cleanup {
-                    sh label: "Stop builder", script: """
-                        docker buildx stop;
-                    """
-//                  sh label: "Remove builder", script: """
-//                      docker buildx rm --force;
-//                  """
                 }
             }
         }
@@ -69,8 +61,9 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry( '', registry_credentials ) {
-                        sh label: "Create builder instance", script: """
-                            docker buildx create --use
+                        builder_name = env.architectures.replaceAll(',', '-').replaceAll('/', '_')
+                        sh label: "Create a new builder if one does not already exist", script: """
+                            docker buildx inspect ${builder_name} || docker buildx create --name ${builder_name} --platform ${architectures}
                         """
                         sh label: "Build image", script: """
                             docker buildx build \
@@ -80,6 +73,7 @@ pipeline {
                                 --tag ${image_name}:dns-digitalocean-mercure \
                                 --tag ${image_name}:dns-cloudflare-mercure \
                                 --platform ${architectures} \
+                                --builder ${builder_name} \
                                 --force-rm \
                                 --no-cache \
                                 --pull \
@@ -89,26 +83,10 @@ pipeline {
                     }
                 }
             }
-            post {
-                cleanup {
-                    sh label: "Stop builder", script: """
-                        docker buildx stop;
-                    """
-//                  sh label: "Remove builder", script: """
-//                      docker buildx rm --force;
-//                  """
-                }
-            }
         }
     }
     post {
         cleanup {
-            sh label: "Run docker buildx prune", script: """
-                docker buildx prune --all --force;
-            """
-            sh label: "Run docker system prune", script: """
-                docker system prune --all --force;
-            """
             cleanWs()
         }
     }
