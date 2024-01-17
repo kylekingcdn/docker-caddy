@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         image_name = 'kylekingcdn/caddy'
-        architectures = 'linux/arm64/v8,linux/amd64'
+        architectures = 'linux/arm64,linux/amd64'
         registry_endpoint = ''
         registry_credentials = 'dockerhub-credentials'
     }
